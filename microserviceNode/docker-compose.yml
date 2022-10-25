@@ -1,0 +1,53 @@
+version: "2.7"
+services:
+
+  # Trottinette:
+  #   container_name: trottinette
+  #   build: C:\Users\majdi\Documents\workspace-spring-tool-suite-4-4.16.0.RELEASE\Trottinette
+  #   ports:
+  #     - "8083:8083"
+  #   hostname: trottinette
+  #   environment:
+  #     - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhoast:8761/eureka-server
+  #     - SPRING_DATASOURCE_URL=jdbc:mysql://docker-mysql_2:3306/trottinette?createDatabaseIfNotExist=true
+  #   image: "trottinette"
+  #   depends_on:
+  #     - Eureka
+  #     - docker-mysql_2
+
+  # docker-mysql_2:
+  #   container_name: docker-mysql_2
+  #   image: "mysql:5.6"
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=
+  #     - MYSQL_DATABASE=trottinette
+  #   ports:
+  #     - 3307:3306
+
+  # Eureka:
+  #   container_name: serviceregistry
+  #   build: C:\Users\majdi\Documents\workspace-spring-tool-suite-4-4.16.0.RELEASE\service-eureka
+  #   ports:
+  #     - "8761:8761"
+  #   hostname: serviceregistry
+  #   image: "eureka"
+  #   environment:
+  #     - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://localhoast:8761/eureka-server
+
+
+  Mongo:
+    container_name: Mongo
+    image: "mongo:5-focal"
+    ports:
+      - "27017:27017"
+    hostname: Mongo
+
+  auth:
+    container_name: auth
+    image: "auth"
+    build: C:\Users\21628\Desktop\micro\trottinette-microservice\microserviceNode
+    ports:
+      - "3000:3000"
+    hostname: auth
+    depends_on:
+      - "Mongo"

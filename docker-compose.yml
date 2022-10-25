@@ -1,0 +1,193 @@
+version: '3.1'
+services:
+  Mongo:
+    container_name: Mongo
+    image: "mongo:5-focal"
+    ports:
+      - "27017:27017"
+    hostname: Mongo
+
+  auth:
+    container_name: auth
+    image: "auth"
+    build: ./microserviceNode
+    ports:
+      - "3000:3000"
+    hostname: auth
+    depends_on:
+      - "Mongo"
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+  discovery:
+    container_name: eureka_microservice_container
+    image: eureka_microservice
+    build: ./eurekadiscovery_microservice
+    ports:
+      - "8761:8761"
+  api_gateway:
+    container_name: api_gateway_container
+    image: gateway_microservice
+    build: ./api_gateway
+    ports:
+      - "8090:8090"
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+
+  balade_microservice:
+    container_name: balade_microservice_container
+    image: balade_microservice
+    build: ./balade_microservce
+    ports:
+      - "8081:8081"
+    depends_on:
+      - balade-postgresql_db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://balade-postgresql_db:5432/balade
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+
+  location_microservice:
+    container_name: location_microservice_container
+    image: location_microservice
+    build: ./location-velo-microserive
+    ports:
+      - "8083:8083"
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+
+
+  post:
+    container_name: post_container
+    image: "post"
+    build: ./post
+    ports:
+      - "8085:8085"
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://post-mysql:3306/post?useSSL=false
+      - MYSQL_HOST=post-mysql
+      - MYSQL_USERNAME=khlifa
+      - MYSQL_PASSWORD=khlifa
+      - MYSQL_DATABASE=post
+
+    depends_on:
+      - post-mysql
+
+  post-mysql:
+    container_name: post-mysql-mysql_2
+    image: "mysql:5.6"
+    environment:
+      - MYSQL_ROOT_PASSWORD=khlifa
+      - MYSQL_DATABASE=post
+      - MYSQL_USER=khlifa
+      - MYSQL_PASSWORD=khlifa
+    ports:
+      - 3309:3306
+    volumes:
+      - post-microservice-mysql-vol:/my/own/datadir
+
+  event:
+    container_name: event-container
+    image: "event_image"
+    build: ./TroutinetEvent
+    ports:
+      - "8082:8082"
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://event-mysql:3306/event?useSSL=false
+      - MYSQL_HOST=event-mysql
+      - MYSQL_USERNAME=mansour
+      - MYSQL_PASSWORD=mansour
+      - MYSQL_DATABASE=event
+
+    depends_on:
+      - event-mysql
+
+  event-mysql:
+    container_name: event-mysql-container
+    image: "mysql:5.6"
+    environment:
+      - MYSQL_ROOT_PASSWORD=mansour
+      - MYSQL_DATABASE=event
+      - MYSQL_USER=mansour
+      - MYSQL_PASSWORD=mansour
+    ports:
+      - 3308:3306
+    volumes:
+      - event-microservice-mysql-vol:/my/own/datadir
+  trottinette:
+    container_name: trottinette
+    image: "trottinette"
+    build: ./Trottinette
+    ports:
+      - "8084:8084"
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://trottinette-mysql:3306/trottinette?useSSL=false
+      - MYSQL_HOST=trottinette-mysql
+      - MYSQL_USERNAME=majdi
+      - MYSQL_PASSWORD=majdi
+      - MYSQL_DATABASE=trottinette
+
+    depends_on:
+      - trottinette-mysql
+
+  trottinette-mysql:
+    container_name: docker-mysql_2
+    image: "mysql:5.6"
+    environment:
+      - MYSQL_ROOT_PASSWORD=majdi
+      - MYSQL_DATABASE=trottinette
+      - MYSQL_USER=majdi
+      - MYSQL_PASSWORD=majdi
+    ports:
+      - 3307:3306
+    volumes:
+      - trottinette-microservice-mysql-vol:/my/own/datadir
+
+  balade-postgresql_db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=iheb
+      - POSTGRES_USER=iheb
+      - POSTGRES_DB=balade
+    volumes:
+      - balade_microservice-postgres-vol:/var/lib/postgresql/data
+
+  advertisement:
+    container_name: advertisement_container
+    image: "advertisement"
+    build: ./advertisement
+    ports:
+      - "8099:8099"
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://advertisement-mysql:3306/advertisement?useSSL=false
+      - MYSQL_HOST=advertisement-mysql
+      - MYSQL_USERNAME=badis
+      - MYSQL_PASSWORD=badis
+      - MYSQL_DATABASE=advertisement
+
+    depends_on:
+      - advertisement-mysql
+
+  advertisement-mysql:
+    container_name: advertisement-mysql-mysql_2
+    image: "mysql:5.6"
+    environment:
+      - MYSQL_ROOT_PASSWORD=badis
+      - MYSQL_DATABASE=advertisement
+      - MYSQL_USER=badis
+      - MYSQL_PASSWORD=badis
+    ports:
+      - 3310:3306
+    volumes:
+      - advertisement-microservice-mysql-vol:/my/own/datadir
+
+volumes:
+  balade_microservice-postgres-vol:
+  trottinette-microservice-mysql-vol:
+  event-microservice-mysql-vol:
+  post-microservice-mysql-vol:
+  advertisement-microservice-mysql-vol:
